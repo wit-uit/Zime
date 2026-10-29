@@ -24,7 +24,7 @@ struct TimerWindowBridge: NSViewRepresentable {
             super.viewDidMoveToWindow()
             guard let settings, window != nil else { return }
             window?.title = "Zime"
-            window?.titleVisibility = .hidden
+            window?.titleVisibility = .visible
             window?.backgroundColor = NSColor(ZimeStyle.canvas)
             apply(request: settings.resizeRequest, floating: settings.alwaysOnTop)
         }
@@ -36,7 +36,7 @@ struct TimerWindowBridge: NSViewRepresentable {
             lastRequest = request
             let available = window.screen?.visibleFrame.size ?? CGSize(width: 1200, height: 900)
             let width = min(settings.windowWidth, available.width)
-            let height = min(settings.windowHeight, max(440, available.height - 36))
+            let height = min(settings.windowHeight, max(220, available.height - 36))
             let oldTop = window.frame.maxY
             window.setContentSize(CGSize(width: width, height: height))
             var frame = window.frame

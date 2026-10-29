@@ -21,16 +21,16 @@ enum WindowPreset: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var title: String {
         switch self {
-        case .compact: "小さめ"
-        case .standard: "標準"
-        case .large: "大きめ"
+        case .compact: "小"
+        case .standard: "中"
+        case .large: "大"
         }
     }
     var size: CGSize {
         switch self {
-        case .compact: CGSize(width: 340, height: 480)
-        case .standard: CGSize(width: 480, height: 640)
-        case .large: CGSize(width: 600, height: 760)
+        case .compact: CGSize(width: 200, height: 240)
+        case .standard: CGSize(width: 260, height: 300)
+        case .large: CGSize(width: 320, height: 360)
         }
     }
 }
@@ -40,38 +40,41 @@ final class TimerSettings {
     private let defaults: UserDefaults
     var focusMinutes: Int { didSet { defaults.set(focusMinutes, forKey: "focusMinutes") } }
     var restMinutes: Int { didSet { defaults.set(restMinutes, forKey: "restMinutes") } }
-    var focusHex: String { didSet { defaults.set(focusHex, forKey: "focusHex") } }
-    var restHex: String { didSet { defaults.set(restHex, forKey: "restHex") } }
+    var colorHex: String { didSet { defaults.set(colorHex, forKey: "colorHex") } }
     var autoContinue: Bool { didSet { defaults.set(autoContinue, forKey: "autoContinue") } }
     var soundEnabled: Bool { didSet { defaults.set(soundEnabled, forKey: "soundEnabled") } }
-    var showTime: Bool { didSet { defaults.set(showTime, forKey: "showTime") } }
     var alwaysOnTop: Bool { didSet { defaults.set(alwaysOnTop, forKey: "alwaysOnTop") } }
     var windowWidth: Double { didSet { defaults.set(windowWidth, forKey: "windowWidth") } }
     var windowHeight: Double { didSet { defaults.set(windowHeight, forKey: "windowHeight") } }
     var resizeRequest = 0
 
-    var focusColor: Color { Color(timerHex: focusHex) }
-    var restColor: Color { Color(timerHex: restHex) }
+    var color: Color { Color(timerHex: colorHex) }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         defaults.register(defaults: [
             "focusMinutes": 25, "restMinutes": 5,
-            "focusHex": "7199A2", "restHex": "A8B89A",
             "autoContinue": true, "soundEnabled": true,
-            "showTime": false, "alwaysOnTop": false,
-            "windowWidth": 480.0, "windowHeight": 640.0
+            "alwaysOnTop": false,
+            "windowWidth": 260.0, "windowHeight": 300.0
         ])
         focusMinutes = min(180, max(1, defaults.integer(forKey: "focusMinutes")))
         restMinutes = min(60, max(1, defaults.integer(forKey: "restMinutes")))
-        focusHex = defaults.string(forKey: "focusHex") ?? "7199A2"
-        restHex = defaults.string(forKey: "restHex") ?? "A8B89A"
+        colorHex = defaults.string(forKey: "colorHex") ?? defaults.string(forKey: "focusHex") ?? "7199A2"
         autoContinue = defaults.bool(forKey: "autoContinue")
         soundEnabled = defaults.bool(forKey: "soundEnabled")
-        showTime = defaults.bool(forKey: "showTime")
         alwaysOnTop = defaults.bool(forKey: "alwaysOnTop")
-        windowWidth = min(1200, max(320, defaults.double(forKey: "windowWidth")))
-        windowHeight = min(1200, max(440, defaults.double(forKey: "windowHeight")))
+        windowWidth = min(1200, max(180, defaults.double(forKey: "windowWidth")))
+        windowHeight = min(1200, max(220, defaults.double(forKey: "windowHeight")))
+        // Apply the compact layout once to existing installations, preserving
+        // subsequent custom sizes and all other preferences.
+        if !defaults.bool(forKey: "compactLayoutV2") {
+            windowWidth = 260
+            windowHeight = 300
+            defaults.set(260.0, forKey: "windowWidth")
+            defaults.set(300.0, forKey: "windowHeight")
+            defaults.set(true, forKey: "compactLayoutV2")
+        }
     }
 
     func applySize(_ size: CGSize? = nil) {

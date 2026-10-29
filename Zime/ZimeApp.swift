@@ -19,9 +19,9 @@ struct ZimeApp: App {
                 .environment(settings)
                 .environment(timer)
         }
-        .windowStyle(.hiddenTitleBar)
+        .windowStyle(.titleBar)
         .windowResizability(.contentMinSize)
-        .defaultSize(width: 480, height: 640)
+        .defaultSize(width: 260, height: 300)
         .commands {
             CommandGroup(replacing: .appSettings) {
                 OpenSettingsButton()
@@ -32,7 +32,7 @@ struct ZimeApp: App {
             SettingsView()
                 .environment(settings)
         }
-        .defaultSize(width: 430, height: 700)
+        .defaultSize(width: 304, height: 280)
         .windowResizability(.contentSize)
         .defaultLaunchBehavior(.suppressed)
     }
