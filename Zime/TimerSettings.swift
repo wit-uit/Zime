@@ -44,6 +44,7 @@ final class TimerSettings {
     var autoContinue: Bool { didSet { defaults.set(autoContinue, forKey: "autoContinue") } }
     var soundEnabled: Bool { didSet { defaults.set(soundEnabled, forKey: "soundEnabled") } }
     var alwaysOnTop: Bool { didSet { defaults.set(alwaysOnTop, forKey: "alwaysOnTop") } }
+    var showRemainingTime: Bool { didSet { defaults.set(showRemainingTime, forKey: "showRemainingTime") } }
     var windowWidth: Double { didSet { defaults.set(windowWidth, forKey: "windowWidth") } }
     var windowHeight: Double { didSet { defaults.set(windowHeight, forKey: "windowHeight") } }
     var resizeRequest = 0
@@ -54,16 +55,18 @@ final class TimerSettings {
         self.defaults = defaults
         defaults.register(defaults: [
             "focusMinutes": 25, "restMinutes": 5,
+            "colorHex": TimerPalette.all[0].hex,
             "autoContinue": true, "soundEnabled": true,
-            "alwaysOnTop": false,
+            "alwaysOnTop": false, "showRemainingTime": false,
             "windowWidth": 260.0, "windowHeight": 300.0
         ])
         focusMinutes = min(180, max(1, defaults.integer(forKey: "focusMinutes")))
         restMinutes = min(60, max(1, defaults.integer(forKey: "restMinutes")))
-        colorHex = defaults.string(forKey: "colorHex") ?? defaults.string(forKey: "focusHex") ?? "7199A2"
+        colorHex = defaults.string(forKey: "colorHex") ?? TimerPalette.all[0].hex
         autoContinue = defaults.bool(forKey: "autoContinue")
         soundEnabled = defaults.bool(forKey: "soundEnabled")
         alwaysOnTop = defaults.bool(forKey: "alwaysOnTop")
+        showRemainingTime = defaults.bool(forKey: "showRemainingTime")
         windowWidth = min(1200, max(180, defaults.double(forKey: "windowWidth")))
         windowHeight = min(1200, max(220, defaults.double(forKey: "windowHeight")))
         // Apply the compact layout once to existing installations, preserving

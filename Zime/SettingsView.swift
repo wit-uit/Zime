@@ -78,12 +78,12 @@ struct SettingsView: View {
             .onSubmit(applySize)
 
             Divider()
-            HStack {
+            LazyVGrid(columns: [GridItem(.flexible(), alignment: .leading),
+                                GridItem(.flexible(), alignment: .leading)], spacing: 8) {
                 Toggle("自動切替", isOn: $settings.autoContinue)
-                Spacer(minLength: 6)
                 Toggle("終了音", isOn: $settings.soundEnabled)
-                Spacer(minLength: 6)
                 Toggle("最前面", isOn: $settings.alwaysOnTop)
+                Toggle("残り時間", isOn: $settings.showRemainingTime)
             }
             .toggleStyle(.checkbox)
         }

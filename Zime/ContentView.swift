@@ -4,13 +4,15 @@ import Combine
 struct ContentView: View {
     @Environment(TimerSettings.self) private var settings
     @Environment(TimerEngine.self) private var timer
-    @Environment(\.openWindow) private var openWindow
     @Environment(\.scenePhase) private var scenePhase
+    @State private var showsSettings = false
+    @State private var windowReference = TimerWindowReference()
     private let ticks = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         GeometryReader { geometry in
-            let diameter = max(100, min(geometry.size.width - 32, geometry.size.height - 100))
+            let diameter = max(100, min(geometry.size.width - 32,
+                                        geometry.size.height - (settings.showRemainingTime ? 120 : 100)))
             VStack(spacing: 0) {
                 HStack {
                     Spacer()
@@ -18,15 +20,23 @@ struct ContentView: View {
                 }
                 .frame(height: 24)
                 Spacer(minLength: 0)
-                TimelineView(.animation(minimumInterval: 1.0 / 60,
-                                        paused: !timer.isPreparing || !timer.isRunning)) { context in
-                    VisualDial(fraction: timer.dialFraction(at: context.date),
-                               color: settings.color, isRunning: timer.isRunning)
-                }
+                VStack(spacing: 5) {
+                    if settings.showRemainingTime {
+                        Text(timer.timeLabel)
+                            .font(.system(size: 10, weight: .regular, design: .rounded).monospacedDigit())
+                            .foregroundStyle(ZimeStyle.secondary)
+                            .accessibilityLabel("残り\(timer.timeLabel)")
+                    }
+                    TimelineView(.animation(minimumInterval: 1.0 / 60,
+                                            paused: !timer.isPreparing || !timer.isRunning)) { context in
+                        VisualDial(fraction: timer.dialFraction(at: context.date),
+                                   color: settings.color, isRunning: timer.isRunning)
+                    }
                     .frame(width: diameter, height: diameter)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel("\(timer.phase.title)タイマー")
                     .accessibilityValue("残り\(timer.timeLabel)、\(timer.isRunning ? "計測中" : "停止中")")
+                }
                 Spacer(minLength: 0)
                 controls.padding(.top, 12)
             }
@@ -35,10 +45,11 @@ struct ContentView: View {
             .padding(.bottom, 10)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(ZimeStyle.canvas)
-            .background(TimerWindowBridge(settings: settings))
+            .background(TimerWindowBridge(settings: settings, windowReference: windowReference))
         }
         .frame(minWidth: 180, minHeight: 220)
         .preferredColorScheme(.light)
+        .focusedSceneValue(\.timerSettingsPresentation, $showsSettings)
         .onReceive(ticks) { timer.tick(now: $0) }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { timer.tick() }
@@ -86,7 +97,7 @@ struct ContentView: View {
     }
 
     private var settingsButton: some View {
-        Button { openWindow(id: "settings") } label: {
+        Button { showsSettings.toggle() } label: {
             Image(systemName: "slider.horizontal.3")
                 .font(.system(size: 13))
                 .frame(width: 24, height: 24)
@@ -95,10 +106,26 @@ struct ContentView: View {
         .foregroundStyle(ZimeStyle.secondary)
         .help("設定（⌘,）")
         .accessibilityLabel("設定を開く")
+        .popover(isPresented: $showsSettings, attachmentAnchor: .rect(.bounds),
+                 arrowEdge: windowReference.settingsArrowEdge) {
+            SettingsView()
+                .environment(settings)
+        }
     }
 
     private func configureTimer() {
         timer.configure(focusMinutes: settings.focusMinutes, restMinutes: settings.restMinutes)
+    }
+}
+
+private struct TimerSettingsPresentationKey: FocusedValueKey {
+    typealias Value = Binding<Bool>
+}
+
+extension FocusedValues {
+    var timerSettingsPresentation: Binding<Bool>? {
+        get { self[TimerSettingsPresentationKey.self] }
+        set { self[TimerSettingsPresentationKey.self] = newValue }
     }
 }
 

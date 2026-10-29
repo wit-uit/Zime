@@ -27,21 +27,14 @@ struct ZimeApp: App {
                 OpenSettingsButton()
             }
         }
-
-        Window("設定", id: "settings") {
-            SettingsView()
-                .environment(settings)
-        }
-        .defaultSize(width: 304, height: 280)
-        .windowResizability(.contentSize)
-        .defaultLaunchBehavior(.suppressed)
     }
 }
 
 private struct OpenSettingsButton: View {
-    @Environment(\.openWindow) private var openWindow
+    @FocusedValue(\.timerSettingsPresentation) private var presentation
     var body: some View {
-        Button("設定…") { openWindow(id: "settings") }
+        Button("設定…") { presentation?.wrappedValue = true }
             .keyboardShortcut(",", modifiers: .command)
+            .disabled(presentation == nil)
     }
 }
